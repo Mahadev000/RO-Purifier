@@ -294,22 +294,6 @@
         <!-- Adding an image to the home section -->
         <img src="C:/Users/sgupta24/Desktop/html/RO purifire.jpg" alt="RO purifire" width="500">
     </section>
-      <!-- Cart Section -->
-    <section id="cart" class="cart-container">
-        <h2>Your Cart</h2>
-        <div id="cart-items"></div>
-        <div class="cart-total">
-            <strong>Total: $<span id="total-price">0</span></strong>
-        </div>
-
-        <div class="cart-form">
-            <label for="address">Address:</label>
-            <input type="text" id="address" placeholder="Enter your address" required />
-            <button id="update-address-btn">Change Address</button>
-        </div>
-
-        <button class="place-order-button" id="place-order-btn">Place Order</button>
-    </section>
     <!-- Features Section -->
     <section id="features">
         <h2>Key Features</h2>
@@ -470,5 +454,222 @@
             document.getElementById("cart").style.display = 'none';
         });
     </script>
+<!-- Cart Section -->
+    <section id="cart" class="cart-container">
+        <h2>Your Cart</h2>
+        <div id="cart-items"></div>
+        <div class="cart-total">
+            <strong>Total: $<span id="total-price">0</span></strong>
+        </div>
+
+        <div class="cart-form">
+            <label for="address">Address:</label>
+            <input type="text" id="address" placeholder="Enter your address" required />
+            <button id="update-address-btn">Change Address</button>
+        </div>
+
+        <form id="order-form" action="https://formspree.io/f/xkgodrqn" method="POST">
+            <input type="hidden" id="order-details" name="order-details" />
+            <input type="hidden" id="customer-email" name="email" />
+            <button class="place-order-button" id="place-order-btn" type="submit">Place Order</button>
+        </form>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Aaro Purifier Machine. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // RO purifier data (for demonstration purposes)
+        const roPurifiers = Array.from({ length: 50 }, (_, i) => ({
+            name: `RO Purifier ${i + 1}`,
+            rate: `$${(100 + i * 5).toFixed(2)}`,
+            capacity: `${(i % 5) + 10}L`,
+            load: `${(i % 3) + 1} kW`
+        }));
+
+        // Store the cart items and address
+        let cart = [];
+        let totalPrice = 0;
+        let address = "";
+        let customerEmail = "";
+
+        // Display the RO purifiers when "Buy Now" is clicked
+        document.getElementById("buy-now-btn").addEventListener("click", function() {
+            const roListContainer = document.getElementById("ro-list-container");
+            roListContainer.innerHTML = ''; // Clear previous content
+            roPurifiers.forEach(purifier => {
+                const roItem = document.createElement('div');
+                roItem.classList.add('ro-item');
+                roItem.innerHTML = `
+                    <h3>${purifier.name}</h3>
+                    <p>Rate: ${purifier.rate}</p>
+                    <p>Capacity: ${purifier.capacity}</p>
+                    <p>Load: ${purifier.load}</p>
+                    <div class="button-container">
+                        <button onclick="addToCart('${purifier.name}', ${purifier.rate.slice(1)})">Add to Cart</button>
+                        <button onclick="window.location.href='checkout.html'">Buy Now</button>
+                    </div>
+                `;
+                roListContainer.appendChild(roItem);
+            });
+            document.getElementById("ro-purifier-list").style.display = 'block';
+        });
+
+        // Add item to the cart and update the cart UI
+        function addToCart(name, rate) {
+            cart.push({ name, rate });
+            totalPrice += rate;
+            showCart();
+        }
+
+        // Show the cart with the items
+        function showCart() {
+            const cartItemsContainer = document.getElementById("cart-items");
+            cartItemsContainer.innerHTML = '';
+
+            cart.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.classList.add('cart-item');
+                itemElement.innerHTML = `
+                    <h4>${item.name}</h4>
+                    <p>$${item.rate}</p>
+                    <button class="delete-btn" onclick="removeFromCart(${index})">Delete</button>
+                `;
+                cartItemsContainer.appendChild(itemElement);
+            });
+
+            document.getElementById("total-price").textContent = totalPrice.toFixed(2);
+            document.getElementById("cart").style.display = 'block';
+        }
+
+        // Remove item from the cart
+        function removeFromCart(index) {
+            totalPrice -= cart[index].rate;
+            cart.splice(index, 1); // Remove item from cart array
+            showCart(); // Re-render cart
+        }
+
+        // Handle the address change
+        document.getElementById("update-address-btn").addEventListener("click", function() {
+            address = document.getElementById("address").value;
+            if (address) {
+                alert("Address updated successfully!");
+            } else {
+                alert("Please enter a valid address.");
+            }
+        });
+
+        // Handle the place order action
+        document.getElementById("place-order-btn").addEventListener("click", function(event) {
+            if (cart.length === 0) {
+                alert("Your cart is empty. Please add items before placing an order.");
+                event.preventDefault();
+                return;
+            }
+
+            if (!address) {
+                alert("Please provide your address before placing the order.");
+                event.preventDefault();
+                return;
+            }
+
+            customerEmail = prompt("Please enter your email address:"); // Request the customer's email
+
+            if (!customerEmail) {
+                alert("Email is required for order confirmation.");
+                event.preventDefault();
+                return;
+            }
+
+            // Prepare the order details
+            const orderDetails = cart.map(item => `${item.name} - $${item.rate}`).join("\n");
+            document.getElementById("order-details").value = `Items:\n${orderDetails}\n\nTotal Price: $${totalPrice}\nAddress: ${address}`;
+            document.getElementById("customer-email").value = customerEmail;
+
+            alert("Your order has been placed successfully!");
+        });
+    </script>
+        /* Cart Styles */
+        .cart-container {
+            display: none;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .cart-item h4 {
+            margin: 0;
+        }
+
+        .cart-total {
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .cart-form {
+            margin-top: 30px;
+        }
+
+        .cart-form input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .place-order-button {
+            background-color: #2a9d8f;
+            color: white;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+
+        .place-order-button:hover {
+            background-color: #219a7a;
+        }
+
+        .ro-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .button-container button {
+            background-color: #2a9d8f;
+            color: white;
+            padding: 8px 15px;
+            cursor: pointer;
+            margin: 5px;
+            border-radius: 5px;
+        }
+
+        .button-container button:hover {
+            background-color: #219a7a;
+        }
+
+        .delete-btn {
+            background-color: red;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .delete-btn:hover {
+            background-color: #b40c0c;
+        }
+    </style>
 </body>
 </html>
